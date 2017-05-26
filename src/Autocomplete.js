@@ -7,8 +7,31 @@ import Fuse from 'fuse.js';
  */
 class Autocomplete extends Component {
   static propTypes = {
+    /**
+     * The value to display in the input field
+     */
+    value: PropTypes.any,
     items: PropTypes.array.isRequired, // Array of items to render
-    searchOptions: PropTypes.object.isRequired  // Options for the FuseJS search library
+    searchOptions: PropTypes.object.isRequired,  // Options for the FuseJS search library
+
+    /**
+     * Arguments: `item: Any, isHighlighted: Boolean`
+     *
+     * Invoked for each entry in section.children
+     */
+    renderItem: PropTypes.func.isRequired,
+
+    /**
+     * Arguments: `group: Any, isHighlighted: Boolean`
+     *
+     * Invoked for each entry in section
+     */
+    renderSectionName: PropTypes.func.isRequired,
+
+    renderMenu: PropTypes.func.isRequired,
+
+    getSectionItems: PropTypes.func.isRequired
+
   }
 
   static defaultProps = {
@@ -19,7 +42,7 @@ class Autocomplete extends Component {
     super(props);
 
     this.state = {
-      search:'',
+      open: false,
       highlightedIndex: null,
       results: []
     };
@@ -34,26 +57,36 @@ class Autocomplete extends Component {
   updateText(e) {
     const searchTerm = e.target.value;
     const results = this.searchLib.search(searchTerm);
-    this.setState({search: searchTerm, results: results});
+
+    const open = results != null && results.length > 0;
+
+    this.setState({
+      results: results,
+      open: open
+    });
   }
 
-  render() {
-    const group = this.state.results.map(result => {
-      const menuItems = result.movies.map(movie => <li>{movie.name}</li>);
+  renderMenu() {
+    const sections = this.state.results.map(result => {
+      const menuItems = this.props.getSectionItems(result).map(item => this.props.renderItem(item, false));
+      const groupName = this.props.renderSectionName(result);
       return [
-        <li className="autocomplete-group-name">{result.groupName}</li>,
+        groupName,
         menuItems
       ];
     });
 
+    return this.props.renderMenu(sections);
+  }
+
+  render() {
+    const open = this.state.open;
+    const sections = this.renderMenu();
+
     return <div>
       <input onChange={this.updateText}
-             value={this.state.search} />
-      <div className="autocomplete-results">
-        <ul>
-          {group}
-        </ul>
-      </div>
+             value={this.props.value} />
+      {open && sections}
     </div>
   }
 }

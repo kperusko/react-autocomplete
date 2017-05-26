@@ -23,8 +23,20 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Autocomplete items={groupedMovies}
-                      searchOptions={{keys: ["groupName", "movies.name"], threshold: 0.2}}
+        <Autocomplete
+          items={groupedMovies}
+          searchOptions={{keys: ["groupName", "movies.name"], threshold: 0.2}}
+          getItemValue={item => item.value}
+          getSectionItems={result => result.movies}
+          renderItem={(item, isHighlighted) => <li>{item.name}</li>}
+          renderSectionName={(item) => <li className="autocomplete-group-name">{item.groupName}</li>}
+          renderMenu={(sections) => (
+            <div className="autocomplete-results">
+              <ul>
+                {sections}
+              </ul>
+            </div>
+          )}
         />
       </div>
     );
