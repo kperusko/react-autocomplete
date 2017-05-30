@@ -12,7 +12,7 @@ class Autocomplete extends Component {
      */
     value: PropTypes.any,
     items: PropTypes.array.isRequired, // Array of items to render
-    searchOptions: PropTypes.object.isRequired,  // Options for the FuseJS search library
+    searchOptions: PropTypes.object.isRequired,  // Options for the search library
 
     /**
      * Arguments: `item: Any, isHighlighted: Boolean`
@@ -30,8 +30,16 @@ class Autocomplete extends Component {
 
     renderMenu: PropTypes.func.isRequired,
 
-    getSectionItems: PropTypes.func.isRequired
+    getSectionItems: PropTypes.func.isRequired,
 
+    /**
+     * Arguments: `item: Any`
+     *
+     * Invoked for each entry in section.children
+     * Each menu item must have an unique ID/key.
+     * Provides way to retrieve the key from the the results
+     */
+    getItemKey: PropTypes.func.isRequired
   }
 
   static defaultProps = {
@@ -57,7 +65,6 @@ class Autocomplete extends Component {
   updateText(e) {
     const searchTerm = e.target.value;
     const results = this.searchLib.search(searchTerm);
-
     const open = results != null && results.length > 0;
 
     this.setState({
@@ -66,9 +73,23 @@ class Autocomplete extends Component {
     });
   }
 
+  highlightItemFromMouse(index) {
+    this.setState({
+      highlightedIndex: index
+    })
+  }
+
   renderMenu() {
     const sections = this.state.results.map(result => {
-      const menuItems = this.props.getSectionItems(result).map(item => this.props.renderItem(item, false));
+      const menuItems = this.props.getSectionItems(result).map(item => {
+        const key = this.props.getItemKey(item)
+        const menuItem = this.props.renderItem(item, key === this.state.highlightedIndex)
+        
+        return React.cloneElement(menuItem, {
+          onMouseEnter: () => this.highlightItemFromMouse(key),
+          key: key
+        })
+      });
       const groupName = this.props.renderSectionName(result);
       return [
         groupName,
