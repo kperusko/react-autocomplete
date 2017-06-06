@@ -36,7 +36,7 @@ class App extends Component {
           getSectionItems={result => result.movies}
           renderItem={(item, isHighlighted) => {
             const className = 'autocomplete-item' + (isHighlighted ? ' autocomplete-item--highlighted' : '');
-            return <li className={className}>{item.name}</li>
+            return <li key={item.key} className={className}>{item.name}</li>
           }}
           renderSectionName={(item) => (
             <li className="autocomplete-group-name">{item.groupName}</li>

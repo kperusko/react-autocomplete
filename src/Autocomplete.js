@@ -42,8 +42,78 @@ class Autocomplete extends Component {
     getItemKey: PropTypes.func.isRequired
   }
 
-  static defaultProps = {
+  static keyDownHandlers = {
+    ArrowUp(event) {
+      event.preventDefault();
 
+      const { highlightedSectionIndex, highlightedItemIndex, results } = this.state;
+
+      // remove highlighting from the first item when the ArrowUp is pressed
+      if (highlightedSectionIndex === 0 && highlightedItemIndex === 0) {
+        this.setState({
+          highlightedItemIndex: null,
+          highlightedSectionIndex: null
+        });
+      }
+
+      if (
+        results.length === 0 ||
+        highlightedSectionIndex === null || highlightedItemIndex === null
+      ) {
+        return;
+      }
+
+      if (highlightedItemIndex - 1 >= 0) {
+        this.setState({
+          highlightedItemIndex: highlightedItemIndex - 1
+        })
+      } else if (highlightedSectionIndex - 1 >= 0) {
+        const previousSection = results[highlightedSectionIndex-1];
+        const previousSectionItems = this.props.getSectionItems(previousSection);
+
+        this.setState({
+          highlightedItemIndex: previousSectionItems.length - 1,
+          highlightedSectionIndex: highlightedSectionIndex - 1
+        })
+      }
+    },
+
+    ArrowDown(event) {
+      event.preventDefault();
+
+      const { highlightedSectionIndex, highlightedItemIndex, results } = this.state;
+
+      if (results.length === 0) {
+        return;
+      }
+
+      if (highlightedSectionIndex === null || highlightedItemIndex === null) {
+        this.setState({
+          highlightedItemIndex: 0,
+          highlightedSectionIndex: 0
+        });
+        return;
+      }
+
+      const highlightedSection = results[highlightedSectionIndex];
+      const highlightedSectionItems = this.props.getSectionItems(highlightedSection);
+
+      if (highlightedItemIndex + 1 < highlightedSectionItems.length) {
+        this.setState({
+          highlightedItemIndex: highlightedItemIndex + 1
+        })
+      } else if (highlightedSectionIndex + 1 < results.length) {
+        this.setState({
+          highlightedItemIndex: 0,
+          highlightedSectionIndex: highlightedSectionIndex + 1
+        })
+      }
+    },
+
+    Enter(event) {
+      event.preventDefault();
+
+    }
   }
 
   constructor(props) {
@@ -51,15 +121,17 @@ class Autocomplete extends Component {
 
     this.state = {
       open: false,
-      highlightedIndex: null,
+      highlightedItemIndex: null,
+      highlightedSectionIndex: null,
       results: []
     };
 
     const searchOptions = props.searchOptions;
     this.searchLib = new Fuse(props.items, searchOptions);
 
-    // bind even handlers
+    // bind event handlers
     this.updateText = this.updateText.bind(this);
+    this.handleOnKeyDownEvent = this.handleOnKeyDownEvent.bind(this);
   }
 
   updateText(e) {
@@ -73,20 +145,29 @@ class Autocomplete extends Component {
     });
   }
 
-  highlightItemFromMouse(index) {
+  highlightItemFromMouse(itemIndex, sectionIndex) {
     this.setState({
-      highlightedIndex: index
+      highlightedItemIndex: itemIndex,
+      highlightedSectionIndex: sectionIndex
     })
   }
 
+  handleOnKeyDownEvent(event) {
+    if (Autocomplete.keyDownHandlers[event.key]) {
+      Autocomplete.keyDownHandlers[event.key].call(this, event);
+    }
+  }
+
   renderMenu() {
-    const sections = this.state.results.map(result => {
-      const menuItems = this.props.getSectionItems(result).map(item => {
-        const key = this.props.getItemKey(item)
-        const menuItem = this.props.renderItem(item, key === this.state.highlightedIndex)
-        
+    const sections = this.state.results.map((result, sectionIndex) => {
+      const menuItems = this.props.getSectionItems(result).map((item, itemIndex) => {
+        const key = this.props.getItemKey(item);
+        const isHighlighted = itemIndex === this.state.highlightedItemIndex 
+          && this.state.highlightedSectionIndex === sectionIndex
+        const menuItem = this.props.renderItem(item, isHighlighted);
+
         return React.cloneElement(menuItem, {
-          onMouseEnter: () => this.highlightItemFromMouse(key),
+          onMouseEnter: () => this.highlightItemFromMouse(itemIndex, sectionIndex),
           key: key
         })
       });
@@ -106,6 +187,7 @@ class Autocomplete extends Component {
 
     return <div>
       <input onChange={this.updateText}
+             onKeyDown={this.handleOnKeyDownEvent}
              value={this.props.value} />
       {open && sections}
     </div>
