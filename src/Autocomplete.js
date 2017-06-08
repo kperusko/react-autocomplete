@@ -132,6 +132,8 @@ class Autocomplete extends Component {
     // bind event handlers
     this.updateText = this.updateText.bind(this);
     this.handleOnKeyDownEvent = this.handleOnKeyDownEvent.bind(this);
+    this.handleOnBlurEvent = this.handleOnBlurEvent.bind(this);
+    this.handleOnFocusEvent = this.handleOnFocusEvent.bind(this);
   }
 
   updateText(e) {
@@ -155,6 +157,20 @@ class Autocomplete extends Component {
   handleOnKeyDownEvent(event) {
     if (Autocomplete.keyDownHandlers[event.key]) {
       Autocomplete.keyDownHandlers[event.key].call(this, event);
+    }
+  }
+
+  handleOnBlurEvent() {
+    this.setState({
+      open: false
+    })
+  }
+
+  handleOnFocusEvent() {
+    if (this.state.results.length > 0 && !this.state.open){
+      this.setState({
+        open: true
+      })
     }
   }
 
@@ -188,6 +204,8 @@ class Autocomplete extends Component {
     return <div>
       <input onChange={this.updateText}
              onKeyDown={this.handleOnKeyDownEvent}
+             onBlur={this.handleOnBlurEvent}
+             onFocus={this.handleOnFocusEvent}
              value={this.props.value} />
       {open && sections}
     </div>
