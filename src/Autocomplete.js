@@ -133,6 +133,14 @@ class Autocomplete extends Component {
 
     Enter(event) {
       event.preventDefault();
+
+      if (this.state.results.length === 0) {
+        return;
+      }
+
+      const { highlightedItemIndex, highlightedSectionIndex }  = this.state;
+
+      this.selectItem(highlightedItemIndex, highlightedSectionIndex);
     }
   }
 
@@ -192,8 +200,11 @@ class Autocomplete extends Component {
   }
 
   selectItemFromMouse(itemIndex, sectionIndex) {
-    const section = this.props.getSectionItems(this.state.results[sectionIndex]);
-    const item = section[itemIndex];
+    this.selectItem(itemIndex, sectionIndex);
+  }
+
+  selectItem(itemIndex, sectionIndex) {
+    const item = this.props.getSectionItems(this.state.results[sectionIndex])[itemIndex];
 
     this.setState({
       open: false,
