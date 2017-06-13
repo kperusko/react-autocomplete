@@ -25,18 +25,26 @@ console.log(groupedMovies);
 
 
 class App extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      value: ''
+    };
+  }
   render() {
     return (
       <div className="App">
         <Autocomplete
           items={groupedMovies}
           searchOptions={{keys: ["groupName", "movies.name"], threshold: 0.2}}
-          getItemValue={item => item.value}
+          value={this.state.value}
           getItemKey={item => item.id}
           getSectionItems={result => result.movies}
-          renderItem={(item, isHighlighted) => {
+          onSelect={(movie) => this.setState({ value: movie.name }) }
+          renderItem={(movie, isHighlighted) => {
             const className = 'autocomplete-item' + (isHighlighted ? ' autocomplete-item--highlighted' : '');
-            return <li key={item.key} className={className}>{item.name}</li>
+            return <li key={movie.key} className={className}>{movie.name}</li>
           }}
           renderSectionName={(item) => (
             <li className="autocomplete-group-name">{item.groupName}</li>

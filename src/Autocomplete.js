@@ -15,6 +15,13 @@ class Autocomplete extends Component {
     searchOptions: PropTypes.object.isRequired,  // Options for the search library
 
     /**
+     * Arguments: `item: Any`
+     *
+     * Invoked when item is selected
+     */
+    onSelect: PropTypes.func,
+
+    /**
      * Arguments: `item: Any, isHighlighted: Boolean`
      *
      * Invoked for each entry in section.children
@@ -112,7 +119,6 @@ class Autocomplete extends Component {
 
     Enter(event) {
       event.preventDefault();
-
     }
   }
 
@@ -126,6 +132,8 @@ class Autocomplete extends Component {
       results: []
     };
 
+    this.ignoreBlur = false;
+
     const searchOptions = props.searchOptions;
     this.searchLib = new Fuse(props.items, searchOptions);
 
@@ -134,6 +142,10 @@ class Autocomplete extends Component {
     this.handleOnKeyDownEvent = this.handleOnKeyDownEvent.bind(this);
     this.handleOnBlurEvent = this.handleOnBlurEvent.bind(this);
     this.handleOnFocusEvent = this.handleOnFocusEvent.bind(this);
+  }
+
+  setIgnoreBlur(ignoreBlur) {
+    this.ignoreBlur = ignoreBlur
   }
 
   updateText(e) {
@@ -154,6 +166,20 @@ class Autocomplete extends Component {
     })
   }
 
+  selectItemFromMouse(itemIndex, sectionIndex) {
+    const section = this.props.getSectionItems(this.state.results[sectionIndex]);
+    const item = section[itemIndex];
+
+    this.setState({
+      open: false,
+      highlightedItemIndex: null,
+      highlightedSectionIndex: null
+    }, () => {
+      this.ignoreBlur = false;
+      this.props.onSelect(item);
+    })
+  }
+
   handleOnKeyDownEvent(event) {
     if (Autocomplete.keyDownHandlers[event.key]) {
       Autocomplete.keyDownHandlers[event.key].call(this, event);
@@ -161,6 +187,8 @@ class Autocomplete extends Component {
   }
 
   handleOnBlurEvent() {
+    if (this.ignoreBlur) return;
+
     this.setState({
       open: false
     })
@@ -184,9 +212,11 @@ class Autocomplete extends Component {
 
         return React.cloneElement(menuItem, {
           onMouseEnter: () => this.highlightItemFromMouse(itemIndex, sectionIndex),
+          onClick: () => this.selectItemFromMouse(itemIndex, sectionIndex),
           key: key
         })
       });
+
       const groupName = this.props.renderSectionName(result);
       return [
         groupName,
@@ -194,7 +224,12 @@ class Autocomplete extends Component {
       ];
     });
 
-    return this.props.renderMenu(sections);
+    const menu = this.props.renderMenu(sections);
+
+    return React.cloneElement(menu, {
+      onMouseEnter: () => this.setIgnoreBlur(true),
+      onMouseLeave: () => this.setIgnoreBlur(false)
+    });
   }
 
   render() {
