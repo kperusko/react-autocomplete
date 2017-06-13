@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import Fuse from 'fuse.js';
 
-/*
- * A simple React component
- */
+
 class Autocomplete extends Component {
   static propTypes = {
     /**
@@ -53,7 +51,16 @@ class Autocomplete extends Component {
      * Each menu item must have an unique ID/key.
      * Provides way to retrieve the key from the the results
      */
-    getItemKey: PropTypes.func.isRequired
+    getItemKey: PropTypes.func.isRequired,
+
+    /**
+     * Whether or not to automatically highlight the first match in the menu.
+     */
+    autoHighlight: PropTypes.bool
+  }
+
+  static defaultProps = {
+    autoHighlight: true
   }
 
   static keyDownHandlers = {
@@ -155,16 +162,26 @@ class Autocomplete extends Component {
     this.ignoreBlur = ignoreBlur
   }
 
-  updateText(e) {
-    const searchTerm = e.target.value;
+  updateText(element) {
+    const searchTerm = element.target.value;
     const results = this.searchLib.search(searchTerm);
     const open = results != null && results.length > 0;
 
+    let highlightedSectionIndex = null,
+      highlightedItemIndex = null;
+
+    if (this.props.autoHighlight) {
+      highlightedSectionIndex = 0;
+      highlightedItemIndex = 0;
+    }
+
     this.setState({
       results: results,
-      open: open
+      open: open,
+      highlightedSectionIndex: highlightedSectionIndex,
+      highlightedItemIndex: highlightedItemIndex
     });
-    this.props.onChange(searchTerm)
+    this.props.onChange(searchTerm);
   }
 
   highlightItemFromMouse(itemIndex, sectionIndex) {
