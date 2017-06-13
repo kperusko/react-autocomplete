@@ -22,6 +22,13 @@ class Autocomplete extends Component {
     onSelect: PropTypes.func,
 
     /**
+     * Arguments: `value: String`
+     *
+     * Invoked every time the user changes the input's value.
+     */
+    onChange: PropTypes.func,
+
+    /**
      * Arguments: `item: Any, isHighlighted: Boolean`
      *
      * Invoked for each entry in section.children
@@ -157,6 +164,7 @@ class Autocomplete extends Component {
       results: results,
       open: open
     });
+    this.props.onChange(searchTerm)
   }
 
   highlightItemFromMouse(itemIndex, sectionIndex) {

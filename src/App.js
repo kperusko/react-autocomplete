@@ -41,7 +41,8 @@ class App extends Component {
           value={this.state.value}
           getItemKey={item => item.id}
           getSectionItems={result => result.movies}
-          onSelect={(movie) => this.setState({ value: movie.name }) }
+          onSelect={movie => this.setState({ value: movie.name }) }
+          onChange={value => this.setState({ value }) }
           renderItem={(movie, isHighlighted) => {
             const className = 'autocomplete-item' + (isHighlighted ? ' autocomplete-item--highlighted' : '');
             return <li key={movie.key} className={className}>{movie.name}</li>
