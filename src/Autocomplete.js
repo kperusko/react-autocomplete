@@ -141,6 +141,17 @@ class Autocomplete extends Component {
       const { highlightedItemIndex, highlightedSectionIndex }  = this.state;
 
       this.selectItem(highlightedItemIndex, highlightedSectionIndex);
+    },
+
+    Escape() {
+      // clear the flag before closing the menu
+      this.setIgnoreBlur(false);
+
+      this.setState({
+        open: false,
+        highlightedItemIndex: null,
+        highlightedSectionIndex: null,
+      })
     }
   }
 
@@ -211,7 +222,7 @@ class Autocomplete extends Component {
       highlightedItemIndex: null,
       highlightedSectionIndex: null
     }, () => {
-      this.ignoreBlur = false;
+      this.setIgnoreBlur(false);
       this.props.onSelect(item);
     })
   }
