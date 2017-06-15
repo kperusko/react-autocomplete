@@ -134,11 +134,11 @@ class Autocomplete extends Component {
     Enter(event) {
       event.preventDefault();
 
-      if (this.state.results.length === 0) {
+      const { highlightedItemIndex, highlightedSectionIndex, open, results }  = this.state;
+
+      if (results.length === 0 && !open ) {
         return;
       }
-
-      const { highlightedItemIndex, highlightedSectionIndex }  = this.state;
 
       this.selectItem(highlightedItemIndex, highlightedSectionIndex);
     },
